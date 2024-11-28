@@ -70,7 +70,7 @@ class RouteProvider
             $routePathParts = self::parseUri($route->path);
 
             // if route method is not equal to the requested method
-            if (!$route->method === $requestMethod) {
+            if ($route->method !== $requestMethod) {
                 continue;
             }
 
