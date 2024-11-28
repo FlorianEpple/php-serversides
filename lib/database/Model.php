@@ -48,7 +48,7 @@ abstract class Model extends MysqlConnection
         return $result;
     }
 
-    public static function all()
+    public static function all(): static
     {
         return new static();
     }
@@ -60,22 +60,37 @@ abstract class Model extends MysqlConnection
         return $this;
     }
 
-    public function first()
+    public function first(): array
     {
         return $this->get(1);
     }
 
-    public static function find(int $id)
+    public static function find(int $id): array
     {
         return (new static())->where('id', '=', $id)->first();
     }
 
-    public static function create(array $data)
+    public static function findOrFail(int $id): array
     {
-        if (in_array((new static)->primaryKey, array_keys($data))) {
-            unset($data[(new static)->primaryKey]);
+        $result = (new static())->where('id', '=', $id)->first();
+
+        if (!$result) {
+            throw new \Error("No record found");
         }
 
+        return $result;
+    }
+
+    public static function getNextId(): int
+    {
+        $query = "SELECT MAX(id) as id FROM " . (new static)->table . ";";
+        $result = (new static)->select($query);
+
+        return $result[0]['id'] + 1;
+    }
+
+    public static function create(array $data): array
+    {
         $data = array_filter($data, function ($key) {
             return in_array($key, (new static)->fillable);
         }, ARRAY_FILTER_USE_KEY);
@@ -88,6 +103,9 @@ abstract class Model extends MysqlConnection
             return is_string($value) ? htmlspecialchars($value) : $value;
         }, $data);
 
+        // add next id to the data
+        $data['id'] = (new static)->getNextId();
+
         // check if table has timestamps from the sql table
         if (in_array('created_at', (new static)->fillable)) {
             $data['created_at'] = date('Y-m-d H:i:s');
@@ -97,27 +115,28 @@ abstract class Model extends MysqlConnection
             $data['updated_at'] = date('Y-m-d H:i:s');
         }
 
-        $query = "INSERT INTO " . (new static)->table . " (";
-        $query .= implode(', ', (new static)->fillable) . ") VALUES ";
-        $query .= "(" . implode(', ', array_fill(0, count((new static)->fillable), '?')) . ");";
-
         $params[0] = "";
+        $query = "INSERT INTO " . (new static)->table . " (";
+        $query .= implode(', ', array_keys($data)) . ") VALUES ";
 
-        foreach ($data as $key => $value) {
+        foreach ($data as $value) {
             $params[0] .= gettype($value)[0];
             $params[] = $value;
         }
 
+        $query .= "(" . implode(', ', array_fill(0, count((new static)->fillable), '?')) . ");";
+
         (new static)->executeStatement($query, $params);
-        return;
+
+        return (new static)->find($data['id']);
     }
 
-    public static function update(array $data)
+    public static function update(array $data): array
     {
         $primaryKey = (new static)->primaryKey;
 
         if (!array_key_exists($primaryKey, $data)) {
-            return;
+            throw new \Error("Primary key not found in data");
         }
 
         $id = $data[$primaryKey];
@@ -140,26 +159,37 @@ abstract class Model extends MysqlConnection
             $data['updated_at'] = date('Y-m-d H:i:s');
         }
 
+        $params[0] = "";
+
         $query = "UPDATE " . (new static)->table . " SET ";
 
         foreach ($data as $key => $value) {
+            if ($key === $primaryKey) {
+                continue;
+            }
+
+            $params[0] .= gettype($value)[0];
+            $params[] = $value;
             $query .= "$key = ?, ";
         }
 
         $query = rtrim($query, ', ');
         $query .= " WHERE $primaryKey = ?;";
 
-        $params = array_values($data);
+        $params[0] .= gettype($id)[0];
         $params[] = $id;
 
-        // (new static)->executeStatement($query, $params);
+        (new static)->executeStatement($query, $params);
+
+        return (new static)->find($id);
     }
 
-    public function delete()
+    public static function delete(mixed $id): void
     {
-        foreach ($this->get() as $row) {
-            $query = "DELETE FROM $this->table WHERE $this->primaryKey = ?;";
-            $this->executeStatement($query, [$row[$this->primaryKey]]);
-        }
+        $query = "DELETE FROM " . (new static)->table . " WHERE id = ?;";
+
+        $type = strtolower(gettype($id)[0]);
+
+        (new static)->executeStatement($query, [$type, $id]);
     }
 }
