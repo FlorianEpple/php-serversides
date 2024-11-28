@@ -1,0 +1,16 @@
+<?php
+
+namespace app\http\controller{{namespace}};
+
+use lib\http\Request;
+use lib\http\Response;
+
+class {{controller}}
+{
+    public static function index(Request $request): Response
+    {
+        // TODO
+
+        return Response::withMessage('Not implemented yet', 501);
+    }
+}

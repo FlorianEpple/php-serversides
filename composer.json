@@ -1,0 +1,17 @@
+{
+  "require": {
+    "ext-mysqli": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "lib\\": "lib/",
+      "lib\\http\\": "lib/http/",
+      "lib\\routine\\": "lib/routine/",
+      "lib\\database\\": "lib/database/",
+      "app\\models\\": "app/models/",
+      "app\\tables\\": "app/tables/",
+      "app\\http\\controller\\": "app/http/controller/",
+      "app\\http\\middleware\\": "app/http/middleware/"
+    }
+  }
+}

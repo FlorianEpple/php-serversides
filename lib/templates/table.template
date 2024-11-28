@@ -1,0 +1,31 @@
+<?php
+
+namespace app\tables{{namespace}};
+
+use lib\database\Blueprint;
+use lib\database\Database;
+use lib\database\Table;
+
+// use app\models\{{model}};
+
+class {{table}} extends Database implements Table
+{
+    public static function up()
+    {
+        self::create('{{table_name}}', function (Blueprint $table) {
+            $table->id();
+            // your columns here
+            $table->timestamps();
+        });
+    }
+
+    public static function seed()
+    {
+        // {{model}}::create([]);
+    }
+
+    public static function down()
+    {
+        self::drop('{{table_name}}');
+    }
+}

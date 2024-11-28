@@ -1,0 +1,9 @@
+<?php
+
+require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/lib/artisan/register.php';
+require_once __DIR__ . '/router/console.php';
+
+use lib\artisan\Artisan;
+
+Artisan::run($argv);

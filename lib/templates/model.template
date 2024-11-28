@@ -1,0 +1,19 @@
+<?php
+
+namespace app\models{{namespace}};
+
+use lib\database\Model;
+
+class {{model}} extends Model
+{
+    public string $table = '{{table}}';
+    public string $primaryKey = 'id';
+
+    public array $fillable = [
+        // your fillable here
+    ];
+
+    public array $restricted = [
+        // your restricted here
+    ];
+}
